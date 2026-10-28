@@ -3,34 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#081522">
-<meta name="description" content="拼音逻辑迷宫：三座城堡，16 个推理关卡，51 道原创拼音谜题。根据线索辨形、分类、匹配、验证拼写规则。">
-<title>拼音逻辑迷宫 · 声母、韵母与整体认读</title>
-<link rel="stylesheet" href="styles.css?v=3.0">
-<script defer src="puzzles.js?v=3.0"></script>
-<script defer src="app.js?v=3.0"></script>
+<meta name="theme-color" content="#071421">
+<meta name="description" content="未来文字探索基地：科技未来韵母基地、星际拼读实验基地、汉字认知探索基地。22 节课程，88 道基础练习，足球、篮球和保龄球小游戏。">
+<title>未来文字探索基地 · 拼音、识字、词句与科学探索</title>
+<link rel="stylesheet" href="academy.css?v=4.0">
+<script defer src="academy-data.js?v=4.0"></script>
+<script defer src="academy.js?v=4.0"></script>
 </head>
 <body>
-<header class="topbar">
-  <button class="brand" data-action="goto" data-page="map" aria-label="返回拼音逻辑迷宫主页">
-    <span class="brand-icon">P</span>
-    <span class="brand-info"><strong>拼音逻辑迷宫</strong><small>PINYIN / LOGIC MAZE</small></span>
-  </button>
-  <nav class="nav" aria-label="主导航">
-    <button data-action="goto" data-page="map" data-active-nav="map" class="active">学习地图</button>
-    <button data-action="goto" data-page="lab" data-active-nav="lab">拼写实验台</button>
-    <button data-action="goto" data-page="rules" data-active-nav="rules">规则档案</button>
-    <button data-action="goto" data-page="records" data-active-nav="records">学习记录</button>
-  </nav>
-  <div class="total-stars" title="已经收集的关卡星级"><span class="icon">★</span><strong id="starTotal">0</strong></div>
+<header class="navbar">
+ <button class="brand" data-action="home" aria-label="返回未来文字探索基地">
+  <span class="brand-symbol">F</span>
+  <span class="brand-text"><strong>未来文字探索基地</strong><small>FUTURE LITERACY LAB</small></span>
+ </button>
+ <nav class="toplinks" aria-label="主导航">
+  <button data-action="home" data-nav="home" class="active">探索地图</button>
+  <button data-action="games" data-nav="games">运动实验场</button>
+  <button data-action="records" data-nav="records">学习档案</button>
+  <a href="logic.html">逻辑迷宫 ↗</a>
+ </nav>
+ <div class="top-progress" title="已完成课程数"><span id="completed-count">0/22</span></div>
 </header>
-<main id="app" aria-label="拼音逻辑迷宫学习内容"></main>
-<nav class="mobile-nav" aria-label="底部导航">
-  <button data-action="goto" data-page="map" data-active-nav="map" class="active"><span>⌂</span>地图</button>
-  <button data-action="goto" data-page="lab" data-active-nav="lab"><span>⌘</span>实验</button>
-  <button data-action="goto" data-page="rules" data-active-nav="rules"><span>◇</span>规则</button>
-  <button data-action="goto" data-page="records" data-active-nav="records"><span>▤</span>档案</button>
+<main id="app" aria-label="拼音与汉字学习内容"></main>
+<nav class="mobile-nav" aria-label="手机导航">
+ <button data-action="home" data-nav="home" class="active"><span>⌂</span>地图</button>
+ <button data-action="games" data-nav="games"><span>◎</span>体育游戏</button>
+ <button data-action="records" data-nav="records"><span>▤</span>档案</button>
+ <button data-action="logic"><span>◇</span>逻辑迷宫</button>
 </nav>
-<div id="toast" class="toast" aria-live="polite" role="status"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
