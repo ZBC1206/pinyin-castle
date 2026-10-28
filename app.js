@@ -1,402 +1,368 @@
+/* 拼音逻辑迷宫 — 纯前端 H5；无需账号、外部依赖或服务端。 */
 'use strict';
-const MODULES={
- initial:{title:'声母城堡',code:'INITIALS',focus:'辨清发音位置，读得轻而短',count:23,color:'#d67e40',note:'声母是音节开头的部分。通过例字体会发音，不把整个例字的读音误当作声母本身。',groups:[
- ['唇音','b p m f','观察双唇和上齿的动作，区分送气与不送气。'],
- ['舌尖中音','d t n l','听清 d/t、n/l 的不同。'],
- ['舌根音','g k h','留意舌根靠近软腭时的气流变化。'],
- ['舌面音','j q x','三个声母要与后面的韵母组合练习。'],
- ['平舌音','z c s','舌尖向前，注意与 zh/ch/sh 的区别。'],
- ['翘舌音','zh ch sh r','感受舌尖抬起，重点练习平翘舌对照。'],
- ['特殊声母','y w','常用于音节拼写，注意与 i、u 的联系。']]},
- vowel:{title:'韵母城堡',code:'FINALS',focus:'听清口形变化与前后鼻音',count:24,color:'#087d79',note:'韵母决定音节的主体响度。复韵母要连贯滑动，鼻韵母要辨清 -n 和 -ng。',groups:[
- ['单韵母','a o e i u ü','观察口形和舌位。ü 要保持圆唇。'],
- ['复韵母','ai ei ui ao ou iu ie üe er','发音由一个元音自然滑向另一个，不能读成两个断开的音。'],
- ['前鼻韵母','an en in un ün','读到尾音时，舌尖上抬形成 -n。'],
- ['后鼻韵母','ang eng ing ong','读到尾音时舌根后抬形成 -ng，注意对照 an/ang 等。']]},
- whole:{title:'整体认读城堡',code:'WHOLE SYLLABLES',focus:'识别完整音节，不拆开硬拼',count:16,color:'#7352a6',note:'整体认读音节按完整的读音识记；一些拼写形态与声母、韵母有关，但练习时直接认读。',groups:[
- ['翘舌类','zhi chi shi ri','整体认读，留意与 zh/ch/sh/r 声母读法的关系。'],
- ['平舌类','zi ci si','整体认读，不按 z+i 等逐字母拼。'],
- ['yi / wu / yu','yi wu yu','对照 i、u、ü 相关的书写形式。'],
- ['常用直读音节','ye yue yuan yin yun ying','先整体读准，再观察音节中的字母。']]}
-};
-const EX={
- initial:{b:['波','bō'],p:['坡','pō'],m:['摸','mō'],f:['发','fā'],d:['得','dé'],t:['特','tè'],n:['讷','nè'],l:['勒','lè'],g:['哥','gē'],k:['科','kē'],h:['喝','hē'],j:['鸡','jī'],q:['七','qī'],x:['西','xī'],zh:['知','zhī'],ch:['吃','chī'],sh:['狮','shī'],r:['日','rì'],z:['资','zī'],c:['次','cì'],s:['丝','sī'],y:['衣','yī'],w:['乌','wū']},
- vowel:{a:['啊','ā'],o:['喔','ō'],e:['鹅','é'],i:['衣','yī'],u:['乌','wū'],'ü':['鱼','yú'],ai:['爱','ài'],ei:['杯','bēi'],ui:['水','shuǐ'],ao:['猫','māo'],ou:['手','shǒu'],iu:['牛','niú'],ie:['叶','yè'],'üe':['月','yuè'],er:['耳','ěr'],an:['山','shān'],en:['门','mén'],in:['林','lín'],un:['春','chūn'],'ün':['云','yún'],ang:['羊','yáng'],eng:['风','fēng'],ing:['星','xīng'],ong:['东','dōng']},
- whole:{zhi:['知','zhī'],chi:['吃','chī'],shi:['狮','shī'],ri:['日','rì'],zi:['字','zì'],ci:['次','cì'],si:['丝','sī'],yi:['衣','yī'],wu:['乌','wū'],yu:['鱼','yú'],ye:['叶','yè'],yue:['月','yuè'],yuan:['圆','yuán'],yin:['音','yīn'],yun:['云','yún'],ying:['鹰','yīng']}
-};
-const WORDS=[
- ['b','a','ba','bà','爸'],['p','a','pa','pá','爬'],['m','a','ma','mā','妈'],
- ['f','an','fan','fàn','饭'],['d','eng','deng','dēng','灯'],['t','ang','tang','táng','糖'],
- ['n','iu','niu','niú','牛'],['l','in','lin','lín','林'],['g','ou','gou','gǒu','狗'],
- ['k','ai','kai','kāi','开'],['j','in','jin','jīn','金'],['q','iu','qiu','qiū','秋'],
- ['x','ing','xing','xīng','星'],['zh','ong','zhong','zhōng','中'],
- ['ch','un','chun','chūn','春'],['sh','ui','shui','shuǐ','水'],
- ['r','en','ren','rén','人'],['z','ao','zao','zǎo','早'],
- ['c','ao','cao','cǎo','草'],['s','an','san','sān','三'],
- ['b','ao','bao','bāo','包'],['l','ong','long','lóng','龙'],
- ['t','ou','tou','tóu','头'],['h','ai','hai','hǎi','海'],
- ['j','üe','jue','jué','决'],['q','üe','que','què','确'],
- ['x','üe','xue','xué','学']
-];
-const TONES=[
- {base:'ma',items:[['mā','妈'],['má','麻'],['mǎ','马'],['mà','骂']]},
- {base:'ba',items:[['bā','八'],['bá','拔'],['bǎ','把'],['bà','爸']]},
- {base:'shi',items:[['shī','师'],['shí','十'],['shǐ','史'],['shì','是']]},
- {base:'yi',items:[['yī','衣'],['yí','姨'],['yǐ','椅'],['yì','意']]}
-];
-const SPELL=[
- ['j','ü','ju','jü','jiu','jui'],
- ['q','ü','qu','qü','qiu','qui'],
- ['x','ü','xu','xü','xiu','xui'],
- ['j','üe','jue','jüe','jie','juee'],
- ['q','üe','que','qüe','qie','quee'],
- ['x','üe','xue','xüe','xie','xuee']
-];
-const STORE='pinyin-lab-v2';
-function blankState(){return {learned:{initial:[],vowel:[],whole:[]},points:0,attempts:0,correct:0,sessions:0,mistakes:{},soundOff:false};}
-function loadState(){
- let state=blankState();
+const STORAGE_KEY='pinyin-logic-maze-v3';
+const ROOT=document.getElementById('app');
+const TOAST=document.getElementById('toast');
+const INITIAL_STATE=()=>({version:3,cleared:{},mistakes:{},totalAttempts:0,firstTry:0,hints:0,freeExplore:false,soundOff:false,lastRealm:'initial'});
+function readState(){
  try{
-  const v=JSON.parse(localStorage.getItem(STORE)||'null');
-  if(v&&typeof v==='object'){
-   state=Object.assign(state,v);
-   state.learned=Object.assign(blankState().learned,v.learned||{});
-   state.mistakes=v.mistakes&&typeof v.mistakes==='object'?v.mistakes:{};
-   return state;
-  }
-  const old=JSON.parse(localStorage.getItem('pinyin-magic-castles-v1')||'null');
-  if(old&&old.learned){['initial','vowel','whole'].forEach(function(id){state.learned[id]=Array.isArray(old.learned[id])?old.learned[id]:[];});}
+  const obj=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+  if(obj&&obj.version===3&&obj.cleared&&obj.mistakes)return Object.assign(INITIAL_STATE(),obj);
  }catch(e){}
- return state;
+ return INITIAL_STATE();
 }
-let state=loadState(),page='home',moduleId='initial',session=null,selected=null,voices=[],toastTimer=0;
-const app=document.getElementById('app'),modal=document.getElementById('modal'),toastEl=document.getElementById('toast');
-function save(){try{localStorage.setItem(STORE,JSON.stringify(state));}catch(e){}updateHeader();}
-function known(id){return (state.learned[id]||[]).filter(function(x){return allUnits(id).includes(x);}).length;}
-function totalKnown(){return Object.keys(MODULES).reduce(function(n,id){return n+known(id);},0);}
-function allUnits(id){return MODULES[id].groups.reduce(function(a,g){return a.concat(g[1].split(' '));},[]);}
-function esc(t){return String(t).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];});}
-function shuffle(a){const out=a.slice();for(let i=out.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[out[i],out[j]]=[out[j],out[i]];}return out;}
-function label(id){return MODULES[id].title;}
-function toast(msg){toastEl.textContent=msg;toastEl.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(function(){toastEl.classList.remove('show');},2100);}
-function updateHeader(){
- const n=document.getElementById('knownStat');if(n)n.textContent=totalKnown()+'/63';
- document.querySelectorAll('[data-nav]').forEach(function(el){const key=el.dataset.nav;el.classList.toggle('active',key===page||(page==='castle'&&key==='home')||(page==='session'&&key==='challenge'));});
+let state=readState(),screen='map',realmId='initial',session=null,labInitial='j',labFinal='ü',toastHandle=null,voices=[];
+function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}refreshShell();}
+function E(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;':'&quot;',"'":'&#39;'}[c]));}
+function byId(id){return ALL_LEVELS.find(l=>l.id===id);}
+function realmById(id){return REALMS.find(r=>r.id===id);}
+function realmProgress(id){const r=realmById(id);return r.levels.filter(l=>!!state.cleared[l.id]).length;}
+function numCleared(){return Object.keys(state.cleared).length;}
+function totalStars(){return Object.values(state.cleared).reduce((a,x)=>a+(x.stars||0),0);}
+function stars(n){return '<span class="star-value" aria-label="'+n+'星">'+('★'.repeat(n))+('<span class="stars-empty">'+'☆'.repeat(3-n)+'</span>')+'</span>';}
+function isUnlocked(l){
+ if(!l)return false;
+ if(state.freeExplore)return true;
+ if(l.id==='master')return REALMS.every(r=>realmProgress(r.id)>=1);
+ const r=realmById(l.realm),idx=r.levels.findIndex(x=>x.id===l.id);
+ return idx===0||!!state.cleared[r.levels[idx-1].id];
 }
-function speak(text){
- if(state.soundOff){toast('声音已关闭，请在学习档案中开启');return;}
- if(!('speechSynthesis' in window)){toast('当前浏览器不支持语音，建议使用 Safari 或 Chrome');return;}
- try{
-  window.speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);u.lang='zh-CN';u.rate=.83;u.pitch=1;u.volume=1;
-  if(voices.length){const v=voices.find(function(x){return /^zh-CN$/i.test(x.lang);})||voices.find(function(x){return /^zh/i.test(x.lang);});if(v)u.voice=v;}
-  window.speechSynthesis.speak(u);
- }catch(e){toast('朗读不可用，请检查设备音量');}
+function notify(msg){TOAST.textContent=msg;TOAST.classList.add('show');clearTimeout(toastHandle);toastHandle=setTimeout(()=>TOAST.classList.remove('show'),2200);}
+function refreshShell(){
+ document.querySelectorAll('[data-active-nav]').forEach(el=>{
+  const route=el.dataset.activeNav;
+  el.classList.toggle('active',route===screen||(screen==='realm'&&route==='map')||(screen==='puzzle'&&route==='map')||(screen==='result'&&route==='map'));
+ });
+ const st=document.getElementById('starTotal');if(st)st.textContent=totalStars();
+}
+function goto(page,id){
+ if(page==='realm'){
+  if(!realmById(id))return;
+  realmId=id;state.lastRealm=id;persist();
+ }
+ if(page==='puzzle')return startLevel(id);
+ screen=page;
+ if(page==='map')renderMap();
+ else if(page==='realm')renderRealm(realmById(realmId));
+ else if(page==='rules')renderRules();
+ else if(page==='lab')renderLab();
+ else if(page==='records')renderRecords();
+ else renderMap();
+ refreshShell();window.scrollTo({top:0,behavior:'auto'});
+}
+function round(p){return Math.round(p);}
+function progressBar(n,total,theme='green'){
+ return '<div class="meter '+theme+'" role="progressbar" aria-valuemin="0" aria-valuemax="'+total+'" aria-valuenow="'+n+'"><span style="width:'+(total?n/total*100:0)+'%"></span></div>';
+}
+function castleGlyph(r){
+ const lines=r.id==='initial'?'<path d="M38 112V49h20v63M86 112V34h20v78M134 112V55h20v57"/><path d="M33 49h31l-5-12H38zM81 34h31l-5-12H86zM129 55h31l-5-12h-21z"/>':
+ r.id==='vowel'?'<path d="M30 112V63l65-40 65 40v49M55 112V70h80v42"/><path d="M80 112V87q15-22 30 0v25"/><path d="M48 57h95"/>':
+ '<path d="M42 112V43h105v69M35 112h120M42 44l52-22 53 22"/><path d="M61 59h67v53H61z"/><path d="M75 112V79h38v33"/>';
+ return '<svg class="castle-svg" viewBox="0 0 190 140" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="95" cy="73" r="63" stroke="currentColor" stroke-opacity=".2" stroke-dasharray="2 5"/><g stroke="currentColor" stroke-width="3.2" stroke-linejoin="round">'+lines+'</g><path d="M15 116H175" stroke="currentColor" stroke-width="4" opacity=".45"/><circle cx="163" cy="23" r="4" fill="currentColor" opacity=".6"/></svg>';
+}
+function renderMap(){
+ const cleared=numCleared(),master=isUnlocked(MASTER);
+ const realmCards=REALMS.map((r,idx)=>{
+  const count=realmProgress(r.id),total=r.levels.length,pct=count/total;
+  return '<button class="realm-card r-'+r.id+'" data-action="realm" data-id="'+r.id+'">'+
+   '<div class="realm-card-top"><span class="realm-index">DOMAIN / 0'+(idx+1)+'</span><span class="realm-fraction">'+count+'/'+total+' 关</span></div>'+
+   '<div class="realm-image">'+castleGlyph(r)+'<span class="realm-initial">'+r.mark+'</span></div>'+
+   '<h3>'+r.name+'</h3><p class="realm-description">'+r.intro+'</p>'+
+   '<div class="realm-card-footer">'+progressBar(count,total)+'<span>探索区域 <b>↗</b></span></div></button>';
+ }).join('');
+ ROOT.innerHTML='<div class="page">'+
+ '<section class="hero"><div class="hero-copy"><div class="hero-line"><span class="glowing-dot"></span> PINYIN / LOGIC ADVENTURE <span class="hero-version">V3.0</span></div>'+
+ '<h1>拼音逻辑迷宫<span class="hero-period">.</span></h1>'+
+ '<p class="hero-subtitle">不是选对答案就结束。<br>每一关，都要找出背后的<span>拼音规律。</span></p>'+
+ '<p class="hero-desc">用线索排除、分类归纳、顺序修复和规则验证，破解三座城堡的机关。为小学拼音学习设计，强调“为什么”。</p>'+
+ '<div class="hero-buttons"><button class="primary-btn" data-action="realm" data-id="'+state.lastRealm+'">继续探索 <span>↗</span></button>'+
+ '<button class="secondary-btn" data-action="goto" data-page="lab">进入拼写实验台 <span>↗</span></button></div>'+
+ '<div class="hero-metrics"><span><b>16</b><small>逻辑关卡</small></span><i></i><span><b>51</b><small>原创谜题</small></span><i></i><span><b>'+cleared+'</b><small>已经破解</small></span></div></div>'+
+ '<div class="hero-visual" aria-hidden="true"><div class="grid-orbit one"></div><div class="grid-orbit two"></div><div class="center-plate"><span>音</span><small>CODE 01</small></div>'+
+ '<div class="chip chip-1">b · p · d · q</div><div class="chip chip-2">ü → u ?</div><div class="chip chip-3">zhi ≠ zh</div><span class="corner-label">FIG. 01 / THE MAZE</span></div></section>'+
+ '<div class="section-heading"><div><span class="eyebrow">01 / THREE REALMS</span><h2>选择探索区域</h2><p>三座城堡分别解决不同的拼音难点。先看线索，再动手验证。</p></div>'+
+ '<span class="section-aside">每座城堡 · 5 个关卡</span></div>'+
+ '<section class="realm-grid">'+realmCards+'</section>'+
+ '<section class="map-lower"><button class="master-card '+(master?'ready':'locked')+'" data-action="master"><div class="master-icon">⌘</div><div><div class="eyebrow">'+(master?'FINAL PUZZLE / UNLOCKED':'FINAL PUZZLE / SEALED')+'</div>'+
+ '<h3>总控密室 <span>↗</span></h3><p>'+(master?'三座城堡的知识交汇。6 个跨领域逻辑挑战。':'每座城堡先破解至少一关，即可进入最终密室。')+'</p></div><span class="master-status">'+(master?'可以挑战':'尚未解锁')+'</span></button>'+
+ '<div class="map-tools"><div class="eyebrow">TOOLS / EXPERIMENTS</div><h3>知识并非凭空记住，而是通过规则解释。</h3>'+
+ '<div class="map-tool-links"><button data-action="goto" data-page="lab">拼写实验台 ↗</button><button data-action="goto" data-page="rules">规则档案 ↗</button>'+
+ '<button data-action="goto" data-page="records">学习记录 ↗</button></div><button class="free-toggle" data-action="free">'+(state.freeExplore?'☑':'□')+' '+(state.freeExplore?'自由探索已开启':'开启自由探索：暂不限制关卡顺序')+'</button></div></section>'+
+ '<div class="site-note">提示：拼读是听觉与口腔动作共同参与的学习。逻辑解谜帮助理解规则，但仍需要真实朗读与听辨练习。</div></div>';
+}
+function renderRealm(r){
+ if(!r){goto('map');return;}
+ const solved=realmProgress(r.id);
+ const items=r.levels.map((l,idx)=>{
+  const unlocked=isUnlocked(l),done=state.cleared[l.id],s=done?stars(done.stars):'';
+  return '<button class="level-card '+(unlocked?'open':'sealed')+(done?' done':'')+'" data-action="start" data-id="'+l.id+'" '+(!unlocked?'disabled':'')+'>'+
+   '<span class="level-num">'+String(idx+1).padStart(2,'0')+'</span>'+
+   '<span class="level-flow"><span class="level-type">'+l.subject+'</span><strong>'+l.name+'</strong><small>'+l.story+'</small></span>'+
+   '<span class="level-meta">'+(done?s+'<small>已破解 · '+done.best+'分</small>':unlocked?'<span class="status-open">开始推理 ↗</span><small>3 个谜题</small>':'<span class="status-locked">LOCKED</span><small>先破解上一关</small>')+'</span></button>';
+ }).join('');
+ ROOT.innerHTML='<div class="page"><div class="crumb"><button data-action="goto" data-page="map">学习地图</button><span>/</span><span>'+r.name+'</span></div>'+
+ '<section class="realm-hero r-'+r.id+'"><div><div class="eyebrow">DOMAIN '+r.mark+' / '+r.english+'</div><h1>'+r.name+'</h1><p>'+r.intro+'</p>'+
+ '<div class="realm-hero-info"><span>已破解 <strong>'+solved+' / '+r.levels.length+'</strong></span><span>谜题 <strong>'+r.levels.length*3+'</strong></span></div>'+
+ '</div><div class="realm-hero-icon">'+castleGlyph(r)+'</div></section>'+
+ '<div class="realm-content"><div><div class="section-heading"><div><span class="eyebrow">MISSION LIST / 01—05</span><h2>探索关卡</h2><p>根据线索完成推理；每关三道谜题，解锁下一关。</p></div></div>'+
+ '<div class="level-list">'+items+'</div></div>'+
+ '<aside class="realm-sidebar"><div class="sidebar-top"><span class="eyebrow">FIELD NOTES</span><h3>本城堡的核心规则</h3></div><p>'+r.rule+'</p>'+
+ '<div class="side-divider"></div><strong>你需要做的</strong><ul><li>阅读所有线索，不要着急猜。</li><li>检查答案是否满足每一条条件。</li><li>解出后阅读原理，形成规律。</li></ul>'+
+ '<button class="text-link" data-action="goto" data-page="rules">查看全部规则档案 ↗</button></aside></div></div>';
+}
+function puzzleOptions(q){
+ const chosen=session.selected,solved=session.solved;
+ if(q.type==='single'){
+  return '<div class="choice-grid">'+q.options.map((v,i)=>
+   '<button class="answer-option '+(solved&&v===q.answer?'is-right':'')+'" data-action="single" data-index="'+i+'" '+(solved?'disabled':'')+'><span class="option-label">'+String.fromCharCode(65+i)+'</span><strong>'+E(v)+'</strong><span class="option-indicator">↗</span></button>').join('')+'</div>';
+ }
+ if(q.type==='multi'){
+  return '<div class="choice-grid">'+q.options.map((v,i)=>{
+   const active=chosen.includes(i);
+   return '<button class="answer-option '+(active?'selected ':'')+(solved&&q.answer.includes(v)?'is-right':'')+'" data-action="multi" data-index="'+i+'" '+(solved?'disabled':'')+'><span class="option-label">'+(active?'✓':String.fromCharCode(65+i))+'</span><strong>'+E(v)+'</strong><span class="option-indicator">'+(active?'已选':'选择')+'</span></button>';
+  }).join('')+'</div><button class="submit-btn" data-action="check" '+(!chosen.length||solved?'disabled':'')+'>验证选择 <span>→</span></button>';
+ }
+ if(q.type==='sequence'){
+  const selected=chosen.map(i=>q.options[i]);
+  return '<div class="sequence-area"><div class="sequence-caption">你的排列 · 点击已选字母可撤回</div>'+
+   '<div class="slots">'+q.answer.map((_,i)=>'<button class="slot '+(i<selected.length?'filled':'')+'" data-action="remove-slot" data-index="'+i+'" '+(i>=selected.length||solved?'disabled':'')+'>'+(i<selected.length?E(selected[i]):'<span>?</span>')+'</button>').join('<span class="slot-separator">→</span>')+'</div>'+
+   '<div class="sequence-caption">待排列的字母</div><div class="choice-grid">'+q.options.map((v,i)=>{
+    const used=chosen.includes(i);
+    return '<button class="answer-option '+(used?'used':'')+'" data-action="sequence" data-index="'+i+'" '+(used||solved?'disabled':'')+'><span class="option-label">'+String.fromCharCode(65+i)+'</span><strong>'+E(v)+'</strong></button>';
+   }).join('')+'</div><button class="submit-btn" data-action="check" '+(selected.length!==q.answer.length||solved?'disabled':'')+'>验证顺序 <span>→</span></button></div>';
+ }
+ if(q.type==='match'){
+  const entries=q.answer,already=session.matched,selectedLeft=session.left;
+  const targetEntries=entries.slice().sort((a,b)=>hash(q.id+'|'+a[1])-hash(q.id+'|'+b[1]));
+  return '<div class="pair-wrap"><div class="pair-col"><div class="pair-col-name">左侧 / 已知单位</div>'+
+   entries.map((p,i)=>'<button class="pair-item '+(already[i]?'matched':selectedLeft===i?'focused':'')+'" data-action="pair-left" data-index="'+i+'" '+(already[i]||solved?'disabled':'')+'><span>'+String(i+1).padStart(2,'0')+'</span><strong>'+E(p[0])+'</strong><em>'+(already[i]?'✓':'')+'</em></button>').join('')+'</div>'+
+   '<div class="pair-connector">⇄</div><div class="pair-col"><div class="pair-col-name">右侧 / 正确解释</div>'+
+   targetEntries.map((p,i)=>{
+    const pairIdx=entries.findIndex(x=>x[0]===p[0]);
+    return '<button class="pair-item '+(already[pairIdx]?'matched':'')+'" data-action="pair-right" data-index="'+pairIdx+'" '+(already[pairIdx]||solved?'disabled':'')+'><span>'+String.fromCharCode(65+i)+'</span><strong>'+E(p[1])+'</strong><em>'+(already[pairIdx]?'✓':'')+'</em></button>';
+   }).join('')+'</div></div><div class="matching-hint">先点左侧一项，再点右侧对应解释。'+(selectedLeft!==null?'已选中左侧第 '+(selectedLeft+1)+' 项。':'')+'</div>';
+ }
+ return '';
+}
+function hash(s){let h=5381;for(let i=0;i<s.length;i++)h=(h*33)^s.charCodeAt(i);return h>>>0;}
+function initPuzzle(){session.selected=[];session.matched={};session.left=null;session.hint=false;session.failures=0;session.solved=false;session.message='';session.awarded=0;}
+function startLevel(id){
+ const level=byId(id);if(!level)return;
+ if(!isUnlocked(level)){notify('先完成前面的关卡，或在学习地图开启自由探索');return;}
+ session={levelId:id,index:0,awardedTotal:0,firstTryCount:0,totalFails:0,hintsUsed:0,results:[]};
+ initPuzzle();screen='puzzle';renderPuzzle();refreshShell();window.scrollTo({top:0,behavior:'auto'});
+}
+function currentLevel(){return session?byId(session.levelId):null;}
+function currentPuzzle(){const l=currentLevel();return l?l.puzzles[session.index]:null;}
+function stageLabel(q){return {single:'线索排除',multi:'集合筛选',sequence:'顺序修复',match:'关系配对'}[q.type]||'逻辑推理';}
+function renderPuzzle(){
+ const l=currentLevel(),q=currentPuzzle();if(!l||!q){goto('map');return;}
+ const part=round(session.index/l.puzzles.length*100);
+ const earned=session.awardedTotal;
+ const decoded=state.cleared[l.id];
+ const panelStatus=session.solved?'correct':session.message?'incorrect':'';
+ const feedback=session.solved?
+  '<div class="feedback success"><div class="feedback-head"><span class="feedback-icon">✓</span><strong>机关已解开</strong><span>+'+session.awarded+' 分</span></div><p>'+E(q.reason)+'</p>'+
+  '<button class="next-btn" data-action="next">'+(session.index===l.puzzles.length-1?'完成本关 · 查看报告':'进入下一道机关')+' <span>→</span></button></div>':
+  session.message?'<div class="feedback retry"><strong>推理尚不成立</strong><p>'+E(session.message)+'</p></div>':'';
+ const number=String(session.index+1).padStart(2,'0');
+ const total=String(l.puzzles.length).padStart(2,'0');
+ ROOT.innerHTML='<div class="page puzzle-page"><div class="crumb"><button data-action="goto" data-page="map">学习地图</button><span>/</span>'+
+ '<button data-action="realm" data-id="'+l.realm+'">'+(l.realm==='master'?'总控密室':realmById(l.realm).name)+'</button><span>/</span><span>'+l.name+'</span></div>'+
+ '<div class="mission-banner"><div><span class="eyebrow">MISSION / '+l.subject.toUpperCase()+'</span><h1>'+l.name+'</h1><p>'+l.story+'</p></div>'+
+ '<div class="mission-id">'+String(l.ordinal).padStart(2,'0')+'<small>LEVEL</small></div></div>'+
+ '<div class="puzzle-layout"><section class="puzzle-main"><div class="puzzle-progress"><div class="puzzle-meta"><span>机关 '+number+' / '+total+'</span>'+
+ '<span>已获得 '+earned+' 分</span></div>'+progressBar(session.index,l.puzzles.length,'teal')+'</div>'+
+ '<div class="question-card '+panelStatus+'"><div class="question-header"><span class="puzzle-kind">'+stageLabel(q)+'</span><span class="difficulty-tag">LOGIC TASK / '+number+'</span></div>'+
+ '<h2>'+E(q.title)+'</h2><p class="question-clue">'+E(q.clue)+'</p>'+
+ '<div class="working-area">'+puzzleOptions(q)+'</div>'+feedback+'</div>'+
+ '<div class="puzzle-actions"><button class="hint-btn '+(session.hint?'active':'')+'" data-action="hint" '+(session.hint||session.solved?'disabled':'')+'>⌕ '+(session.hint?'已使用提示':'需要一点提示？')+' <span>使用提示将扣 15 分</span></button>'+
+ '<button class="quit-btn" data-action="quit">退出本关</button></div></section>'+
+ '<aside class="puzzle-sidebar"><span class="eyebrow">DEDUCTION BOARD</span><h3>线索板</h3><p>'+E(l.story)+'</p>'+
+ '<div class="clue-info"><span>本题要求</span><strong>'+stageLabel(q)+'</strong><small>'+
+ (q.type==='multi'?'可能有多个正确答案，必须全部选中。':q.type==='sequence'?'按顺序点击卡片填入空位，选错可撤回。':q.type==='match'?'点左侧，再点相应的右侧；配对成功会固定。':'请结合所有线索，选出唯一正确答案。')+
+ '</small></div>'+
+ (session.hint?'<div class="hint-box"><span>ADDITIONAL CLUE</span><p>'+E(q.hint)+'</p></div>':'<div class="hint-locked">提示未开启<br><span>先利用题目中已有的条件推理。</span></div>')+
+ '<div class="side-score"><span>本关已完成</span><strong>'+session.index+' / '+l.puzzles.length+'</strong></div>'+
+ (decoded?'<small class="side-replay">本关历史最佳 '+decoded.best+' 分</small>':'')+
+ '</aside></div></div>';
+}
+function fail(msg){
+ if(!session||session.solved)return;
+ session.failures++;session.totalFails++;state.totalAttempts++;
+ state.mistakes[currentPuzzle().id]=(state.mistakes[currentPuzzle().id]||0)+1;
+ persist();session.message=msg||'有一条线索尚未满足，请检查后重试。';renderPuzzle();
+}
+function solve(){
+ if(!session||session.solved)return;
+ const q=currentPuzzle();session.solved=true;session.message='';
+ state.totalAttempts++;
+ if(session.failures===0){session.firstTryCount++;state.firstTry++;}
+ if(session.failures===0)delete state.mistakes[q.id]; // 曾经做错的题，下一次一遍答对才移出。
+ const awarded=Math.max(25,100-20*session.failures-(session.hint?15:0));
+ session.awarded=awarded;session.awardedTotal+=awarded;
+ session.results.push({id:q.id,firstTry:session.failures===0,usedHint:session.hint,awarded});
+ persist();renderPuzzle();
+}
+function verify(){
+ if(!session||session.solved)return;
+ const q=currentPuzzle();
+ if(q.type==='single')return;
+ if(q.type==='multi'){
+  const values=session.selected.map(i=>q.options[i]),wanted=q.answer;
+  if(values.length===wanted.length&&values.every(x=>wanted.includes(x)))solve();
+  else fail('选择的集合与规则不一致。检查是否有遗漏，或把不符合条件的选项混入了。');
+ }else if(q.type==='sequence'){
+  const values=session.selected.map(i=>q.options[i]);
+  if(values.length===q.answer.length&&values.every((x,i)=>x===q.answer[i]))solve();
+  else fail('这些元素都选到了，但排列顺序有误。对照线索中的先后关系重新安排。');
+ }
+}
+function takeSingle(index){
+ if(!session||session.solved)return;
+ const q=currentPuzzle(),value=q.options[index];
+ if(value===q.answer)solve();
+ else fail('“'+value+'”不能同时满足题目的全部条件。请逐条核对。');
+}
+function takeMulti(index){
+ if(!session||session.solved)return;
+ const a=session.selected,idx=a.indexOf(index);
+ if(idx>=0)a.splice(idx,1);else a.push(index);
+ session.message='';renderPuzzle();
+}
+function takeSequence(index){
+ if(!session||session.solved)return;
+ if(session.selected.includes(index)||session.selected.length>=currentPuzzle().answer.length)return;
+ session.selected.push(index);session.message='';renderPuzzle();
+}
+function removeSequence(pos){
+ if(!session||session.solved)return;
+ if(pos>=0&&pos<session.selected.length){session.selected.splice(pos,1);session.message='';renderPuzzle();}
+}
+function pairLeft(index){
+ if(!session||session.solved||session.matched[index])return;
+ session.left=index;session.message='';renderPuzzle();
+}
+function pairRight(index){
+ if(!session||session.solved||session.matched[index])return;
+ if(session.left===null){notify('请先点击左侧一项');return;}
+ if(session.left!==index){session.left=null;fail('两端的含义没有匹配。先找共同特征，再重新连线。');return;}
+ session.matched[index]=true;session.left=null;session.message='';
+ if(Object.keys(session.matched).length===currentPuzzle().answer.length)solve();
+ else renderPuzzle();
+}
+function next(){
+ if(!session||!session.solved)return;
+ const l=currentLevel();
+ if(session.index===l.puzzles.length-1){
+  const max=l.puzzles.length*100,score=session.awardedTotal;
+  const star=score>=max*.9?3:score>=max*.7?2:1;
+  const prior=state.cleared[l.id],best=Math.max(prior?.best||0,score);
+  state.cleared[l.id]={best,stars:Math.max(prior?.stars||0,star),plays:(prior?.plays||0)+1,updatedAt:new Date().toISOString()};
+  session.finished={score,stars:star,max};
+  persist();screen='result';renderResult();refreshShell();window.scrollTo({top:0,behavior:'auto'});
+ }else{session.index++;initPuzzle();renderPuzzle();window.scrollTo({top:0,behavior:'auto'});}
+}
+function renderResult(){
+ const l=currentLevel();if(!l||!session?.finished){goto('map');return;}
+ const f=session.finished,realm=realmById(l.realm),nextLevel=realm?.levels[l.ordinal]||null;
+ ROOT.innerHTML='<div class="page result-page"><div class="result-orbit"><span>◇</span></div><span class="eyebrow">MISSION SOLVED / REPORT</span>'+
+ '<h1>机关破解成功。</h1><p class="result-sub">'+l.name+' · '+l.subject+'</p><div class="result-score">'+f.score+'<small> / '+f.max+' 分</small></div>'+
+ '<div class="result-stars">'+stars(f.stars)+'</div><div class="result-stats"><div><strong>'+session.firstTryCount+' / '+l.puzzles.length+'</strong><span>一次答对</span></div>'+
+ '<div><strong>'+session.totalFails+'</strong><span>尝试纠错</span></div><div><strong>'+session.hintsUsed+'</strong><span>使用提示</span></div></div>'+
+ '<div class="rule-unlock"><div class="rule-symbol">◈</div><div><span>已收入规则档案</span><h3>'+l.subject+'</h3><p>'+E(l.rule)+'</p></div></div>'+
+ '<div class="result-buttons"><button class="primary-btn" data-action="'+(nextLevel?'start':'goto')+'" '+(nextLevel?'data-id="'+nextLevel.id+'"':'data-page="map"')+'">'+(nextLevel?'继续下一关':'返回学习地图')+' ↗</button>'+
+ '<button class="outline-btn" data-action="start" data-id="'+l.id+'">再次挑战</button>'+
+ '<button class="outline-btn" data-action="goto" data-page="rules">查看规则档案</button></div></div>';
+}
+function renderRules(){
+ const cards=REALMS.map(r=>'<section class="rule-section"><div class="rule-section-title"><span>'+r.mark+'</span><h2>'+r.name+'</h2><small>'+realmProgress(r.id)+' / 5 已发现</small></div>'+
+ r.levels.map(l=>{const open=!!state.cleared[l.id];return '<div class="rule-line '+(open?'unlocked':'hidden-rule')+'"><span class="rule-index">'+String(l.ordinal).padStart(2,'0')+'</span><div><h3>'+l.subject+'</h3><p>'+E(open?l.rule:'破解“'+l.name+'”后，这条拼音规律将收录到档案。')+'</p></div><span class="rule-state">'+(open?'✓ 已发现':'尚未发现')+'</span></div>';}).join('')+'</section>').join('');
+ const master=state.cleared.master?'<section class="rule-section"><div class="rule-section-title"><span>IV</span><h2>总控密室</h2></div><div class="rule-line unlocked"><div><h3>跨领域综合</h3><p>'+MASTER.rule+'</p></div></div></section>':'';
+ ROOT.innerHTML='<div class="page"><div class="page-heading"><span class="eyebrow">RULE ARCHIVE / UNLOCK BY REASONING</span><h1>规则档案</h1><p>推理成功之后，把发现的规律收集起来。它们可以用于破解后面的机关。</p></div>'+
+ '<div class="rule-intro"><strong>'+numCleared()+' / 16</strong><span>已发现规则</span>'+progressBar(numCleared(),16)+'</div>'+
+ cards+master+'<div class="site-note">学习提示：本页记录的是拼音学习规则，不替代规范的发音示范。</div></div>';
+}
+function renderLab(){
+ const isDropped=['j','q','x'].includes(labInitial),write=labInitial+(isDropped?labFinal.replace('ü','u'):labFinal);
+ const compared=[
+  ['送气差别','波 · 坡','bō / pō','b 与 p 的送气区别；这里播放的是完整汉字读音。'],
+  ['平翘舌','资 · 知','zī / zhī','比较 z 和 zh 的舌位差异。'],
+  ['鼻韵尾','安 · 昂','ān / áng','比较前鼻音 -n 与后鼻音 -ng。'],
+  ['圆唇辨音','乌 · 鱼','wū / yú','比较与 u、ü 对应的元音特点。']
+ ];
+ ROOT.innerHTML='<div class="page"><div class="page-heading"><span class="eyebrow">ORTHOGRAPHY / EXPERIMENTS</span><h1>拼写实验台</h1>'+
+ '<p>改变一项条件，观察拼音如何变化。先自己推测，再查看实验结果。</p></div>'+
+ '<div class="lab-layout"><section class="lab-board"><div class="eyebrow">EXPERIMENT 01 / Ü RULE</div><h2>ü 的两点什么时候会消失？</h2>'+
+ '<p>切换声母或韵母，对照左边输入和右边规范拼写。</p><div class="lab-sets"><div><span>声母</span><div class="lab-choices">'+['j','q','x','n','l'].map(v=>'<button class="'+(v===labInitial?'on':'')+'" data-action="lab-initial" data-value="'+v+'">'+v+'</button>').join('')+'</div></div>'+
+ '<div><span>韵母</span><div class="lab-choices">'+['ü','üe'].map(v=>'<button class="'+(v===labFinal?'on':'')+'" data-action="lab-final" data-value="'+v+'">'+v+'</button>').join('')+'</div></div></div>'+
+ '<div class="lab-equation"><span>'+labInitial+'</span><i>+</i><span>'+labFinal+'</span><i>→</i><strong>'+write+'</strong></div>'+
+ '<div class="lab-insight"><span class="lab-insight-flag">'+(isDropped?'触发省点规则':'保留两点')+'</span><p>'+(isDropped?'j、q、x 和 ü 或 üe 相拼时，书写上省去 ü 的两点，但韵母发音不变。':'n、l 与 ü 或 üe 相拼时，书写上保留 ü 的两点。')+'</p></div>'+
+ '</section><aside class="lab-aside"><span class="eyebrow">THINK FIRST</span><h3>比较两次实验</h3><p>先选 j + ü，再改成 l + ü。观察哪一个符号改变了，哪一个没有改变。</p>'+
+ '<div class="mini-rule"><strong>j + ü → ju</strong><strong>l + ü → lü</strong></div><p>两者读音都含有 ü 的元音音色，变化的是拼写。</p></aside></div>'+
+ '<div class="section-heading"><div><span class="eyebrow">EXPERIMENT 02 / AUDIO COMPARISON</span><h2>读音对照</h2><p>听一听例字，思考声母、韵母与声调有什么不同。</p></div></div>'+
+ '<section class="sound-grid">'+compared.map((a,i)=>'<article class="sound-card"><span class="sound-index">0'+(i+1)+'</span><h3>'+a[0]+'</h3><div class="sound-symbol">'+a[1]+'</div><span class="sound-pinyin">'+a[2]+'</span><p>'+a[3]+'</p>'+
+ '<div class="sound-actions">'+a[1].split(' · ').map((v,j)=>'<button data-action="speak" data-value="'+v+'">▶ 读“'+v+'”</button>').join('')+'</div></article>').join('')+'</section>'+
+ '<div class="site-note">语音来自设备的中文语音合成，朗读的是示例汉字，并非独立声母或韵母的标准教学录音；部分设备可能不支持。不能只靠语音合成纠正发音。</div></div>';
+}
+function speak(s){
+ if(state.soundOff){notify('当前已关闭示例字语音，可在学习记录中开启');return;}
+ if(!('speechSynthesis' in window)){notify('当前浏览器没有可用的语音合成');return;}
+ try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(s);u.lang='zh-CN';u.rate=.78;u.pitch=1;
+ const v=voices.find(x=>x.lang==='zh-CN')||voices.find(x=>x.lang.toLowerCase().startsWith('zh'));if(v)u.voice=v;
+ window.speechSynthesis.speak(u);}catch(e){notify('语音不可用，请检查浏览器设置');}
 }
 if('speechSynthesis' in window){
  voices=window.speechSynthesis.getVoices();
- window.speechSynthesis.onvoiceschanged=function(){voices=window.speechSynthesis.getVoices();};
+ window.speechSynthesis.onvoiceschanged=()=>{voices=window.speechSynthesis.getVoices();};
 }
-function castleArt(color){
- return '<svg viewBox="0 0 190 145" role="img" aria-label="城堡建筑图形" xmlns="http://www.w3.org/2000/svg">'+
- '<circle cx="96" cy="65" r="56" fill="none" stroke="'+color+'" stroke-opacity=".17" stroke-dasharray="2 6"/>'+
- '<path d="M16 119H174" stroke="'+color+'" stroke-width="2" opacity=".4"/>'+
- '<path d="M33 56h27v63H33zM130 56h27v63h-27z" fill="'+color+'" opacity=".75"/>'+
- '<path d="M29 56V43h8v7h9v-7h8v7h9v6zM126 56V43h8v7h9v-7h8v7h9v6z" fill="'+color+'"/>'+
- '<path d="M61 69h69v50H61z" fill="'+color+'" opacity=".88"/>'+
- '<path d="M66 69V51h10v9h13v-9h11v9h13v-9h10v18z" fill="'+color+'"/>'+
- '<path d="M83 119V97a13 13 0 0 1 26 0v22" fill="#fff" opacity=".86"/>'+
- '<path d="M41 71h10v17H41zM139 71h10v17h-10zM89 77h13v13H89z" fill="#fff" opacity=".75"/>'+
- '<path d="M95 51V21" stroke="'+color+'" stroke-width="3"/><path d="M95 22h26l-6 9H95z" fill="'+color+'"/>'+
- '<path d="M18 124h154" stroke="'+color+'" stroke-width="5" stroke-linecap="round" opacity=".55"/>'+
- '</svg>';
+function renderRecords(){
+ const solved=numCleared(),r=state.totalAttempts?round(state.firstTry/state.totalAttempts*100):0;
+ const incorrectIds=Object.entries(state.mistakes).sort((a,b)=>b[1]-a[1]).slice(0,12);
+ const missed=incorrectIds.map(([id,count])=>{const q=ALL_PUZZLES.find(q=>q.id===id);return q?'<div class="mistake-row"><span class="mistake-badge">'+count+' 次</span><strong>'+E(q.title)+'</strong><small>'+E(byId(id.split('.').slice(0,2).pop())?.name||q.id)+'</small></div>':'';}).join('');
+ ROOT.innerHTML='<div class="page"><div class="page-heading"><span class="eyebrow">LEARNING ANALYTICS</span><h1>探索档案</h1><p>记录解谜结果，不用简单的“认识了几个字母”冒充真正掌握。</p></div>'+
+ '<div class="record-stats"><div><span>已破解</span><strong>'+solved+' <small>/16 关</small></strong><p>完成全部机关才能记为破解</p></div>'+
+ '<div><span>累积星级</span><strong>'+totalStars()+' <small>/48 ★</small></strong><p>看首次作答与提示使用情况</p></div>'+
+ '<div><span>首次判断正确率</span><strong>'+r+'<small>%</small></strong><p>正确首次解谜次数 / 全部判断次数</p></div></div>'+
+ '<div class="record-columns"><section class="record-card"><div class="eyebrow">AREAS EXPLORED</div><h2>三座城堡的进度</h2>'+
+ REALMS.map(realm=>'<button class="record-realm" data-action="realm" data-id="'+realm.id+'"><strong>'+realm.name+'</strong><span>'+realmProgress(realm.id)+'/5 关</span>'+
+ progressBar(realmProgress(realm.id),5)+'</button>').join('')+'</section>'+
+ '<section class="record-card"><div class="eyebrow">REVISIT</div><h2>需要再推理的题目</h2>'+
+ (missed||'<div class="record-empty">暂时没有需要复习的谜题。解错后会自动记录在这里。</div>')+
+ '<div class="record-footnote">这里展示做错过、且尚未在新一轮中一次答对的题目。返回对应关卡复练即可。</div></section></div>'+
+ '<div class="record-settings"><div><div class="eyebrow">SETTINGS</div><h3>探索设置</h3></div>'+
+ '<button class="toggle-setting" data-action="free">'+(state.freeExplore?'✓ 自由探索：开启':'□ 自由探索：关闭')+'</button>'+
+ '<button class="toggle-setting" data-action="sound">'+(state.soundOff?'开启语音':'关闭语音')+'</button>'+
+ '<button class="toggle-setting destructive" data-action="reset">清空 V3 学习记录</button></div>'+
+ '<div class="site-note">统计数据仅存储在当前浏览器。旧版页面的数据不会被删除，但不同版本之间不自动混用关卡成绩。</div></div>';
 }
-function renderHome(){
- let cards=Object.keys(MODULES).map(function(id,i){
-  const m=MODULES[id],n=known(id),pct=Math.round(n/m.count*100);
-  return '<button class="path-card '+id+'" data-action="castle" data-id="'+id+'">'+
-   '<div class="path-art"><span class="code">0'+(i+1)+' / '+m.code+'</span>'+castleArt(m.color)+'</div>'+
-   '<div class="path-top"><small>第 '+(i+1)+' 区域 · '+m.count+' 个基础单位</small></div>'+
-   '<h3>'+m.title+'</h3><p>'+m.focus+'。'+(id==='whole'?'完整读音，直接识记。':'从识别走向运用。')+'</p>'+
-   '<div class="progress-track"><i style="width:'+pct+'%"></i></div>'+
-   '<div class="path-foot"><span>已认识 <b>'+n+'/'+m.count+'</b></span><span class="goto">进入学习 ↗</span></div></button>';
- }).join('');
- app.innerHTML='<div class="page">'+
-  '<section class="hero"><div class="hero-copy"><div class="eyebrow light">PINYIN LEARNING SYSTEM · V2.0</div>'+
-  '<h1>把字母学会，<br><em>把拼读练熟。</em></h1>'+
-  '<p>从三个城堡出发，走过发音识别、声韵组合、声调判断和综合闯关。不是反复点卡片，而是让每一次练习都有反馈。</p>'+
-  '<div class="hero-actions"><button class="btn main" data-action="nav" data-page="challenge">开始综合闯关 ↗</button><button class="btn line" data-action="nav" data-page="blend">进入拼读工坊</button></div></div>'+
-  '<div class="hero-graphic" aria-hidden="true"><div class="orbit"></div><div class="graphic-core"><span>拼</span></div>'+
-  '<div class="orbit-node a"><strong>23</strong><small>INITIALS</small></div>'+
-  '<div class="orbit-node b"><strong>24</strong><small>FINALS</small></div>'+
-  '<div class="orbit-node c"><strong>16</strong><small>WHOLE</small></div><div class="hero-side-label">EXPLORE · PRACTICE · MASTER</div></div></section>'+
-  '<div class="section-head"><div><div class="eyebrow">LEARNING MAP</div><h2>三座城堡 · 一条进阶路线</h2><p>按自己掌握的程度学习，难点随时返回复练。</p></div><span class="meta">总计 63 个基础单位</span></div>'+
-  '<section class="paths">'+cards+'</section>'+
-  '<section class="home-bottom"><div class="panel feature-card"><div class="eyebrow light">PRACTICE STUDIO</div><h3 style="margin-top:9px">真正的拼读，从组合开始</h3><p>分清声母和韵母，正确拼出完整音节；再处理变调、标调和特殊拼写。</p>'+
-  '<div class="feature-tags"><span>声母 + 韵母</span><span>平翘舌</span><span>前后鼻音</span><span>ü 的省点规则</span></div>'+
-  '<button class="btn main" data-action="nav" data-page="blend">进入训练 ↗</button></div>'+
-  '<div class="panel"><div class="eyebrow">LEARNING RECORD</div><h3 style="margin-top:9px">学习记录</h3><p>“已认识”由自己确认，练习正确率和待复习错题单独记录。</p>'+
-  '<div class="mini-metrics"><div class="metric"><b>'+totalKnown()+'</b><small>已认识 / 63</small></div>'+
-  '<div class="metric"><b>'+state.attempts+'</b><small>练习题数</small></div>'+
-  '<div class="metric"><b>'+Object.keys(state.mistakes).length+'</b><small>待复习题</small></div></div></div></section>'+
-  '<p class="site-footer">发音按钮播放的是示例汉字的普通话读音；设备语音不等于专业声母、韵母教学录音。学习进度只保存在当前浏览器。</p></div>';
-}
-function renderCastle(){
- const m=MODULES[moduleId],pct=Math.round(known(moduleId)/m.count*100);
- let groups=m.groups.map(function(g,index){
-  const units=g[1].split(' ').map(function(py){
-   const ex=EX[moduleId][py],done=(state.learned[moduleId]||[]).includes(py);
-   return '<button class="unit '+(done?'learned':'')+'" data-action="unit" data-unit="'+esc(py)+'" aria-label="'+esc(py)+'，示例字'+esc(ex[0])+(done?'，已认识':'')+'">'+
-    (done?'<span class="check">✓</span>':'')+'<strong>'+esc(py)+'</strong><small>'+esc(ex[0])+'</small></button>';
-  }).join('');
-  return '<section class="group-card"><div class="group-head"><h3>'+g[0]+'</h3><small>'+(index+1)+' / '+m.groups.length+' · '+g[1].split(' ').length+' 个</small></div>'+
-    '<p class="group-note">'+g[2]+'</p><div class="unit-grid">'+units+'</div></section>';
- }).join('');
- app.innerHTML='<div class="page"><div class="page-head"><div><button class="back" data-action="nav" data-page="home">← 返回学习地图</button>'+
-  '<div class="eyebrow">'+m.code+' · CASTLE</div><h1 class="page-title">'+m.title+'</h1>'+
-  '<p class="page-sub">'+m.note+'</p></div><div class="page-heading-right"><span class="status-chip">'+known(moduleId)+' / '+m.count+' 已认识</span></div></div>'+
-  '<section class="learning-intro"><div><div class="eyebrow light">LEARNING TARGET</div><h2>'+m.focus+'</h2>'+
-  '<p>点击字母，打开发音与辨析卡。完成学习后，进入本城堡专项训练。</p>'+
-  '<div style="margin-top:18px"><button class="btn main" data-action="start" data-mode="castle">本城堡专项训练 ↗</button></div></div>'+
-  '<div class="side"><div class="big-code">'+(moduleId==='initial'?'b·p':moduleId==='vowel'?'ai·an':'zhi')+'</div></div></section>'+
-  groups+'<p class="bottom-hint">标记“已经认识”只是自我确认，不代表在听音和拼读测试中已经熟练。建议两者结合练习。</p></div>';
-}
-function renderBlend(){
- app.innerHTML='<div class="page"><div class="page-head"><div><div class="eyebrow">PRACTICE STUDIO</div>'+
-  '<h1 class="page-title">拼读工坊</h1><p class="page-sub">看懂组合规则，也能把陌生音节独立拼出来。</p></div></div>'+
-  '<div class="workbench"><div class="method-grid">'+
-  '<section class="method"><div class="method-no">TRAINING 01</div><div class="symbol">b + ao → bao</div><h3>声韵组合</h3><p>根据声母和韵母，选出正确拼写。特殊组合也会进入练习。</p><button class="btn blue" data-action="start" data-mode="blend">开始 10 题 ↗</button></section>'+
-  '<section class="method"><div class="method-no">TRAINING 02</div><div class="symbol">j + ü → ju</div><h3>特殊拼写</h3><p>理解 j、q、x 与 ü、üe 相拼时省略两点的规则。</p><button class="btn outline" data-action="start" data-mode="spell">练习 6 题 ↗</button></section>'+
-  '<section class="method"><div class="method-no">TRAINING 03</div><div class="symbol">zh / z</div><h3>发音归类</h3><p>辨认不同发音部位，区分平翘舌及前后鼻韵母。</p><button class="btn outline" data-action="start" data-mode="class">开始 10 题 ↗</button></section>'+
-  '<section class="method"><div class="method-no">TRAINING 04</div><div class="symbol">↻</div><h3>错题复盘</h3><p>以前做错的题自动收集，答对后从待复习队列移除。</p><button class="btn outline" data-action="review">'+(Object.keys(state.mistakes).length?'复习 '+Object.keys(state.mistakes).length+' 题 ↗':'查看错题 ↗')+'</button></section>'+
-  '</div><aside class="guide-panel"><div class="eyebrow">HOW TO LEARN</div><h3 style="margin-top:9px">拼读三步法</h3>'+
-  '<div class="formula">b <span>+</span> ao <span>→</span> bao</div>'+
-  '<ol><li>先看清声母，发音轻短。</li><li>再读准韵母，发音响亮。</li><li>两部分连贯拼读成音节。</li></ol>'+
-  '<p>注意：j、q、x 和 ü 相拼时，ü 上两点省略，但韵母的发音并没有变成 u。</p>'+
-  '<button class="btn light" data-action="nav" data-page="tones">学习四声与标调 →</button></aside></div>'+
-  '<p class="site-footer">本训练采用经过筛选的真实汉字音节示例；并非任意声母和韵母都能合法组合。</p></div>';
-}
-function renderTones(){
- let lines=['M5 9H85','M5 31L85 5','M5 5Q33 52 47 29Q67 15 85 10','M5 5L85 34'];
- let charts=TONES[0].items.map(function(item,i){
-  return '<div class="tone-box"><svg class="graph" viewBox="0 0 90 39" aria-hidden="true"><path d="'+lines[i]+'" fill="none" stroke="#2b768a" stroke-width="5" stroke-linecap="round"/></svg>'+
-  '<strong>'+item[0]+'</strong><small>'+['一声 · 平','二声 · 升','三声 · 拐弯','四声 · 降'][i]+'</small>'+
-  '<span class="han">'+item[1]+'</span><button data-action="speak" data-text="'+item[1]+'">听发音 ↗</button></div>';
- }).join('');
- const sets=TONES.map(function(g){
-  return '<div class="tone-set"><h3>'+g.base+' 的四声对照</h3><div class="tone-choices">'+g.items.map(function(item){
-   return '<button class="tone-choice" data-action="speak" data-text="'+item[1]+'"><strong>'+item[0]+'</strong><small>'+item[1]+' · 播放</small></button>';
-  }).join('')+'</div></div>';
- }).join('');
- app.innerHTML='<div class="page"><div class="page-head"><div><div class="eyebrow">TONE STUDY</div><h1 class="page-title">声调研究室</h1>'+
-  '<p class="page-sub">同一个音节，声调不同，意义可能完全不同。先听出变化，再选对带调拼音。</p></div>'+
-  '<button class="btn blue" data-action="start" data-mode="tone">四声挑战 ↗</button></div>'+
-  '<div class="section-head" style="margin-top:12px"><div><h2>用“ma”理解四声</h2><p>观察音高走势，点击示例汉字对照发音。</p></div></div>'+
-  '<div class="tone-lineup">'+charts+'</div><div class="section-head"><div><h2>同音节四声对照</h2><p>不要只背调号，要能听出和读出每一个声调。</p></div></div>'+
-  '<div class="tone-sets">'+sets+'</div>'+
-  '<div class="panel" style="margin-top:18px"><h3>标调提示</h3><p>有 a 先标 a；没有 a 找 o、e；i 和 u 并列时，标在后面的字母上；轻声不标调。例如 <strong>hǎo、liú、guì</strong>。</p></div></div>';
-}
-function renderProgress(){
- const rate=state.attempts?Math.round(state.correct/state.attempts*100):0;
- const tiles=Object.keys(MODULES).map(function(id){
-  const m=MODULES[id],n=known(id);return '<div class="panel"><div class="eyebrow">'+m.code+'</div><h3 style="margin-top:9px">'+m.title+'</h3>'+
-  '<p>已认识 '+n+' / '+m.count+'</p><div class="progress-track" style="--accent:'+m.color+'"><i style="width:'+(n/m.count*100)+'%"></i></div>'+
-  '<button style="margin-top:16px" class="btn light" data-action="castle" data-id="'+id+'">继续学习 →</button></div>';
- }).join('');
- let wrong=Object.keys(state.mistakes).map(function(key){
-  const row=state.mistakes[key],q=makeQuestion(row);
-  return q?'<span class="review-chip">'+esc(q.short)+'</span>':'';
- }).join('');
- app.innerHTML='<div class="page"><div class="page-head"><div><div class="eyebrow">LEARNING RECORD</div><h1 class="page-title">学习档案</h1>'+
-  '<p class="page-sub">认识进度、练习正确率、待复习内容分开统计，更清楚知道下一步练什么。</p></div></div>'+
-  '<section class="prog-grid"><div class="prog-card"><small>基础单位已认识</small><strong>'+totalKnown()+' / 63</strong><p>手动确认的认识进度</p></div>'+
-  '<div class="prog-card"><small>累积练习正确率</small><strong>'+rate+'%</strong><p>'+state.correct+' / '+state.attempts+' 题</p></div>'+
-  '<div class="prog-card"><small>待复习错题</small><strong>'+Object.keys(state.mistakes).length+'</strong><p>答对可移出队列</p></div></section>'+
-  '<div class="section-head"><div><h2>三座城堡进度</h2></div></div><section class="progress-module">'+tiles+'</section>'+
-  '<div class="section-head"><div><h2>错题复习</h2><p>错误会保留在这里，直至同题答对。</p></div></div>'+
-  '<div class="panel">'+(wrong?'<div class="review-list">'+wrong+'</div><button class="btn blue" data-action="review">开始错题复练 ↗</button>':
-  '<div class="empty-state">目前没有待复习的错题。可以从综合闯关开始建立自己的练习记录。</div><div style="margin-top:16px"><button class="btn light" data-action="nav" data-page="challenge">进入闯关 →</button></div>')+
-  '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:22px;padding-top:18px;border-top:1px solid #e3e9ed">'+
-  '<button class="btn outline" data-action="sound">'+(state.soundOff?'开启语音':'关闭语音')+'</button>'+
-  '<button class="btn danger" data-action="reset">清空学习记录</button></div></div>'+
-  '<p class="site-footer">学习记录仅保存在此设备浏览器中，不会上传到服务器。清理浏览器数据可能会丢失进度。</p></div>';
-}
-function openUnit(py){
- const ex=EX[moduleId][py];if(!ex)return;selected=py;
- const m=MODULES[moduleId],done=state.learned[moduleId].includes(py);
- const group=m.groups.find(function(g){return g[1].split(' ').includes(py);});
- const special=moduleId==='initial'?'声母发音要轻而短。这里播放的是示例汉字，而不是孤立声母的标准教学音频。':
- moduleId==='vowel'?'注意口形、发音过程和鼻音尾音。播放的是包含该韵母的示例字。':
- '这是整体认读音节，直接认读，不要拆成声母和韵母硬拼。';
- modal.innerHTML='<div class="modal"><button class="modal-close" data-action="close" aria-label="关闭">×</button>'+
-  '<div class="modal-overline">'+m.title+' / '+esc(group[0])+'</div><div class="modal-letter">'+esc(py)+'</div>'+
-  '<div class="modal-example"><div class="han">'+esc(ex[0])+'</div><div class="py">'+esc(ex[1])+'</div></div>'+
-  '<p class="modal-note">'+esc(group[2])+'<br>'+special+'</p>'+
-  '<div class="modal-btns"><button class="btn outline" data-action="speak" data-text="'+esc(ex[0])+'">▶ 听示例字</button>'+
-  '<button class="btn '+(done?'light':'blue')+'" data-action="mark">'+(done?'取消认识标记':'标记已认识 ✓')+'</button></div></div>';
- modal.classList.add('open');document.body.style.overflow='hidden';
-}
-function closeModal(){modal.classList.remove('open');document.body.style.overflow='';selected=null;}
-function markUnit(){
- if(!selected)return;const arr=state.learned[moduleId],idx=arr.indexOf(selected);
- if(idx>=0)arr.splice(idx,1);else arr.push(selected);
- save();closeModal();renderCastle();toast(idx>=0?'已取消认识标记':'已记录：认识 '+selected);
-}
-function qSpec(type,id){return {type:type,id:id};}
-function keyOf(spec){return spec.type+':'+spec.id;}
-function makeQuestion(spec){
- if(!spec||!spec.type)return null;
- const type=spec.type,id=spec.id;
- if(type==='sound'){
-  const parts=id.split('|'),cat=parts[0],py=parts[1];
-  if(!EX[cat]||!EX[cat][py])return null;
-  const ex=EX[cat][py],pool=allUnits(cat).filter(function(s){return s!==py;});
-  return {key:keyOf(spec),spec:spec,short:py+' 听音',kind:'听音辨字母',title:'听示例字，找出对应的'+(cat==='initial'?'声母':cat==='vowel'?'韵母':'整体认读音节'),
-   hint:'点击播放后，再选择。',display:'audio',audio:ex[0],choices:shuffle([py].concat(shuffle(pool).slice(0,3))),answer:py,
-   explain:'示例字“'+ex[0]+'”读作 '+ex[1]+'，对应本组学习单位 '+py+'。'};
- }
- if(type==='class'){
-  const parts=id.split('|'),cat=parts[0],py=parts[1],m=MODULES[cat];
-  if(!m)return null;
-  const g=m.groups.find(function(x){return x[1].split(' ').includes(py);});if(!g)return null;
-  return {key:keyOf(spec),spec:spec,short:py+' 分类',kind:'发音归类',title:'“'+py+'”属于哪个学习分组？',
-   hint:'观察这个拼音的发音特点。',display:py,choices:shuffle([g[0]].concat(shuffle(m.groups.filter(function(x){return x[0]!==g[0];}).map(function(x){return x[0];})).slice(0,3))),answer:g[0],
-   explain:py+' 属于“'+g[0]+'”。'+g[2]};
- }
- if(type==='blend'){
-  const w=WORDS.find(function(x){return x[2]===id;});if(!w)return null;
-  const pool=WORDS.filter(function(x){return x[2]!==w[2];}).map(function(x){return x[2];});
-  const similar=pool.filter(function(x){return x.startsWith(w[0])||x.endsWith(w[1]);});
-  return {key:keyOf(spec),spec:spec,short:w[2]+' 拼读',kind:'声韵组合',title:'把声母和韵母连起来，选出正确音节',
-   hint:'先读声母，再连贯地读韵母。',display:[w[0],w[1]],choices:shuffle([w[2]].concat(shuffle(similar.concat(pool.filter(function(x){return !similar.includes(x);}))).slice(0,3))),answer:w[2],
-   explain:w[0]+' + '+w[1]+' → '+w[2]+'。例如“'+w[4]+'”读 '+w[3]+'。'+('jqx'.includes(w[0])&&w[1].includes('ü')?'注意：j、q、x 后面的 ü 省略两点。':'')};
- }
- if(type==='tone'){
-  const parts=id.split('|'),g=TONES.find(function(x){return x.base===parts[0];}),idx=Number(parts[1]);
-  if(!g||!g.items[idx])return null;
-  const item=g.items[idx];
-  return {key:keyOf(spec),spec:spec,short:item[1]+' 声调',kind:'声调判断',title:'这个汉字应该选哪一个带调拼音？',
-   hint:'看清声调符号，听听声音的升降。',display:item[1],audio:item[1],choices:shuffle(g.items.map(function(x){return x[0];})),answer:item[0],
-   explain:'“'+item[1]+'”读 '+item[0]+'，是'+['第一声','第二声','第三声','第四声'][idx]+'。'};
- }
- if(type==='spell'){
-  const w=SPELL.find(function(x){return x[2]===id;});if(!w)return null;
-  return {key:keyOf(spec),spec:spec,short:w[2]+' 规则',kind:'特殊拼写',title:'按照拼音书写规则，应该写成哪一个？',
-   hint:'j、q、x 与 ü、üe 相拼时，两点要省略。',display:[w[0],w[1]],choices:shuffle(w.slice(2)),answer:w[2],
-   explain:w[0]+' + '+w[1]+' → '+w[2]+'。ü 上两点省略，读音仍保留 ü 的特点。'};
- }
- return null;
-}
-function pickSpecs(mode){
- const U=function(id){return allUnits(id).map(function(py){return qSpec('sound',id+'|'+py);});};
- const C=function(id){return allUnits(id).map(function(py){return qSpec('class',id+'|'+py);});};
- const B=function(){return WORDS.map(function(w){return qSpec('blend',w[2]);});};
- const T=function(){return TONES.flatMap(function(g){return g.items.map(function(x,i){return qSpec('tone',g.base+'|'+i);});});};
- const S=function(){return SPELL.map(function(w){return qSpec('spell',w[2]);});};
- if(mode==='castle')return shuffle(U(moduleId)).slice(0,6).concat(shuffle(C(moduleId)).slice(0,4));
- if(mode==='blend')return shuffle(B()).slice(0,10);
- if(mode==='spell')return shuffle(S());
- if(mode==='class')return shuffle(C('initial').concat(C('vowel'),C('whole'))).slice(0,10);
- if(mode==='tone')return shuffle(T()).slice(0,10);
- if(mode==='review')return Object.keys(state.mistakes).map(function(k){return state.mistakes[k];}).filter(function(x){return !!makeQuestion(x);}).slice(0,20);
- return shuffle(U('initial').concat(U('vowel'),U('whole'))).slice(0,3)
-  .concat(shuffle(C('initial').concat(C('vowel'),C('whole'))).slice(0,2),
-  shuffle(B()).slice(0,3),shuffle(T()).slice(0,2),shuffle(S()).slice(0,2));
-}
-const MODE_NAMES={challenge:'综合闯关',castle:'城堡专项训练',blend:'拼读工坊',spell:'特殊拼写训练',class:'发音归类训练',tone:'四声挑战',review:'错题复习'};
-function startSession(mode){
- const specs=shuffle(pickSpecs(mode)).map(makeQuestion).filter(Boolean);
- if(!specs.length){toast('当前没有错题，先去完成一轮闯关吧');return;}
- session={mode:mode,questions:specs,index:0,score:0,wrong:0,answered:false,selected:null,started:true};
- state.sessions++;save();navigate('session',null,true);
-}
-function renderSession(){
- if(!session){navigate('challenge');return;}
- if(session.index>=session.questions.length){renderFinished();return;}
- const q=session.questions[session.index];if(!q){session.index++;renderSession();return;}
- const stage=q.display==='audio'?'<button class="play-circle" data-action="qplay" aria-label="播放示例字">▶</button><div class="question-example">点按播放示例字，再选择答案</div>':
- Array.isArray(q.display)?'<div class="question-symbol split"><span>'+esc(q.display[0])+'</span><i>+</i><span>'+esc(q.display[1])+'</span><i>= ?</i></div>':
- '<div class="question-symbol">'+esc(q.display)+'</div>'+
- (q.audio?'<button class="btn light" data-action="qplay">▶ 听发音</button>':'');
- const options=q.choices.map(function(opt,i){
-  let cls='';
-  if(session.answered&&opt===q.answer)cls=' correct';
-  else if(session.answered&&i===session.selected)cls=' wrong';
-  return '<button class="choice'+cls+'" data-action="answer" data-index="'+i+'" '+(session.answered?'disabled':'')+'>'+esc(opt)+'</button>';
- }).join('');
- const right=session.selected!==null&&q.choices[session.selected]===q.answer;
- const feedback=session.answered?'<div class="feedback '+(right?'':'wrong')+'" role="status"><strong>'+(right?'判断正确。':'这题需要再巩固。')+'</strong><div>'+esc(q.explain)+'</div></div>'+
- '<div class="session-next"><button class="btn blue" data-action="next">'+(session.index===session.questions.length-1?'查看成绩 →':'下一题 →')+'</button></div>':'';
- const percent=Math.round(session.index/session.questions.length*100);
- app.innerHTML='<div class="page session-wrap"><button class="back" data-action="leave">← 结束训练</button>'+
- '<div class="eyebrow">'+MODE_NAMES[session.mode].toUpperCase()+'</div><h1 class="page-title">'+MODE_NAMES[session.mode]+'</h1>'+
- '<div class="session-top"><span class="count">第 '+(session.index+1)+' / '+session.questions.length+' 题</span><span class="score">当前得分 '+session.score+'</span></div>'+
- '<div class="progress-track"><i style="width:'+percent+'%;background:#24837e"></i></div>'+
- '<div class="session-card"><div class="question-kicker">'+q.kind+' / '+(session.index+1).toString().padStart(2,'0')+'</div>'+
- '<h2 class="question-heading">'+esc(q.title)+'</h2><p class="question-hint">'+esc(q.hint)+'</p>'+
- '<div class="question-stage">'+stage+'</div><div class="choices">'+options+'</div>'+feedback+'</div></div>';
-}
-function answer(index){
- if(!session||session.answered)return;
- const q=session.questions[session.index];
- if(!q||index<0||index>=q.choices.length)return;
- session.answered=true;session.selected=index;
- const good=q.choices[index]===q.answer;
- state.attempts++;
- if(good){session.score+=10;state.correct++;state.points+=10;delete state.mistakes[q.key];}
- else{session.wrong++;state.mistakes[q.key]=q.spec;}
- save();renderSession();
- if(good&&q.audio)speak(q.audio);
-}
-function nextQuestion(){if(!session||!session.answered)return;session.index++;session.answered=false;session.selected=null;renderSession();}
-function renderFinished(){
- const all=session.questions.length,got=all-session.wrong,rate=Math.round(got/all*100);
- app.innerHTML='<div class="page session-wrap"><button class="back" data-action="nav" data-page="home">← 返回学习地图</button>'+
- '<div class="session-card finish"><div class="eyebrow">SESSION COMPLETE</div><div class="grade">'+rate+'%</div>'+
- '<h2>'+(rate>=90?'完成得很扎实':rate>=70?'继续巩固，进步明显':'发现了需要加强的知识点')+'</h2>'+
- '<p>答对 '+got+' / '+all+' 题 · 获得 '+session.score+' 分<br>本轮出现 '+session.wrong+' 道错题。错题会留在复习队列，直到答对。</p>'+
- '<div class="btns"><button class="btn blue" data-action="retry">再练一轮 ↗</button>'+
- '<button class="btn outline" data-action="review">复习错题</button>'+
- '<button class="btn light" data-action="nav" data-page="progress">查看学习档案</button></div></div></div>';
-}
-function navigate(to,id,keepSession){
- if(!keepSession&&page==='session')session=null;
- page=to;
- if(to==='castle'&&MODULES[id])moduleId=id;
- closeModal();
- if(to==='home')renderHome();
- else if(to==='castle')renderCastle();
- else if(to==='blend')renderBlend();
- else if(to==='tones')renderTones();
- else if(to==='progress')renderProgress();
- else if(to==='session')renderSession();
- else if(to==='challenge'){startSession('challenge');return;}
- else{page='home';renderHome();}
- updateHeader();window.scrollTo({top:0,behavior:'instant'});
-}
-document.addEventListener('click',function(ev){
- const el=ev.target.closest('[data-action]');if(!el)return;
- const a=el.dataset.action;
- if(a==='nav')navigate(el.dataset.page);
- else if(a==='castle')navigate('castle',el.dataset.id);
- else if(a==='unit')openUnit(el.dataset.unit);
- else if(a==='close')closeModal();
- else if(a==='mark')markUnit();
- else if(a==='speak')speak(el.dataset.text||'');
- else if(a==='start')startSession(el.dataset.mode);
- else if(a==='review')startSession('review');
- else if(a==='qplay'){if(session){const q=session.questions[session.index];if(q&&q.audio)speak(q.audio);}}
- else if(a==='answer')answer(Number(el.dataset.index));
- else if(a==='next')nextQuestion();
- else if(a==='retry'){if(session)startSession(session.mode);}
- else if(a==='leave'){session=null;navigate('home');}
- else if(a==='sound'){state.soundOff=!state.soundOff;save();renderProgress();if(!state.soundOff)speak('语音已开启');}
- else if(a==='reset'){
-  if(confirm('清空所有“已认识”标记、练习记录和错题？此操作无法撤销。')){
-   state=blankState();save();renderProgress();toast('已清空学习记录');
+function restoreOldMistake(id){return ALL_PUZZLES.find(q=>q.id===id);}
+document.addEventListener('click',event=>{
+ const el=event.target.closest('[data-action]');if(!el||el.disabled)return;
+ const act=el.dataset.action,idx=Number(el.dataset.index);
+ if(act==='goto')goto(el.dataset.page);
+ else if(act==='realm')goto('realm',el.dataset.id);
+ else if(act==='start')startLevel(el.dataset.id);
+ else if(act==='master'){if(isUnlocked(MASTER))startLevel('master');else notify('先在每座城堡完成至少一关，才能开启总控密室');}
+ else if(act==='single')takeSingle(idx);
+ else if(act==='multi')takeMulti(idx);
+ else if(act==='sequence')takeSequence(idx);
+ else if(act==='remove-slot')removeSequence(idx);
+ else if(act==='pair-left')pairLeft(idx);
+ else if(act==='pair-right')pairRight(idx);
+ else if(act==='check')verify();
+ else if(act==='next')next();
+ else if(act==='hint'){if(session&&!session.hint&&!session.solved){session.hint=true;session.hintsUsed++;state.hints++;persist();renderPuzzle();}}
+ else if(act==='quit'){session=null;goto('map');}
+ else if(act==='free'){state.freeExplore=!state.freeExplore;persist();if(screen==='records')renderRecords();else renderMap();notify(state.freeExplore?'自由探索已开启，所有关卡可进入':'已恢复顺序解锁');}
+ else if(act==='lab-initial'){labInitial=el.dataset.value;renderLab();}
+ else if(act==='lab-final'){labFinal=el.dataset.value;renderLab();}
+ else if(act==='speak')speak(el.dataset.value);
+ else if(act==='sound'){state.soundOff=!state.soundOff;persist();renderRecords();}
+ else if(act==='reset'){
+  if(window.confirm('将清空当前逻辑解谜版的星级、关卡和错题记录。确定吗？')){
+   state=INITIAL_STATE();session=null;persist();renderRecords();notify('学习记录已清空');
   }
  }
 });
-modal.addEventListener('click',function(ev){if(ev.target===modal)closeModal();});
-document.addEventListener('keydown',function(ev){if(ev.key==='Escape')closeModal();});
-navigate('home');
+goto('map');
