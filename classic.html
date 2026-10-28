@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#112a3e">
+<meta name="description" content="拼音实验室：声母城堡、韵母城堡、整体认读城堡。拼读、声调、辨音与错题复练，适合小学拼音学习。">
+<title>拼音实验室 · 三座城堡的进阶训练</title>
+<link rel="stylesheet" href="styles.css?v=2">
+<script src="app.js?v=2" defer></script>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <button class="brand" data-action="nav" data-page="home" aria-label="返回拼音实验室首页">
+      <span class="brand-mark">P.</span>
+      <span><strong>拼音实验室</strong><small>PINYIN LEARNING LAB</small></span>
+    </button>
+    <nav class="desktop-nav" aria-label="主导航">
+      <button class="nav-link active" data-action="nav" data-nav="home" data-page="home">学习地图</button>
+      <button class="nav-link" data-action="nav" data-nav="blend" data-page="blend">拼读工坊</button>
+      <button class="nav-link" data-action="nav" data-nav="tones" data-page="tones">声调研究</button>
+      <button class="nav-link" data-action="nav" data-nav="challenge" data-page="challenge">综合闯关</button>
+      <button class="nav-link" data-action="nav" data-nav="progress" data-page="progress">学习档案</button>
+    </nav>
+    <div class="header-score" title="已认识的基础学习单位"><span><b id="knownStat">0/63</b><span class="tiny">已认识</span></span></div>
+  </header>
+  <main id="app" aria-label="拼音学习内容"></main>
+</div>
+<nav class="mobile-nav" aria-label="手机快捷导航">
+  <button data-action="nav" data-nav="home" data-page="home"><span>⌂</span>学习地图</button>
+  <button data-action="nav" data-nav="blend" data-page="blend"><span>↔</span>拼读练习</button>
+  <button data-action="nav" data-nav="challenge" data-page="challenge"><span>◎</span>综合闯关</button>
+  <button data-action="nav" data-nav="progress" data-page="progress"><span>▤</span>学习档案</button>
+</nav>
+<div id="modal" class="modal-bg" role="dialog" aria-modal="true" aria-label="拼音发音与辨析卡"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
