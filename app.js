@@ -13,7 +13,7 @@ function readState(){
 }
 let state=readState(),screen='map',realmId='initial',session=null,labInitial='j',labFinal='ü',toastHandle=null,voices=[];
 function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}refreshShell();}
-function E(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;':'&quot;',"'":'&#39;'}[c]));}
+function E(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function byId(id){return ALL_LEVELS.find(l=>l.id===id);}
 function realmById(id){return REALMS.find(r=>r.id===id);}
 function realmProgress(id){const r=realmById(id);return r.levels.filter(l=>!!state.cleared[l.id]).length;}
@@ -319,7 +319,7 @@ if('speechSynthesis' in window){
 function renderRecords(){
  const solved=numCleared(),r=state.totalAttempts?round(state.firstTry/state.totalAttempts*100):0;
  const incorrectIds=Object.entries(state.mistakes).sort((a,b)=>b[1]-a[1]).slice(0,12);
- const missed=incorrectIds.map(([id,count])=>{const q=ALL_PUZZLES.find(q=>q.id===id);return q?'<div class="mistake-row"><span class="mistake-badge">'+count+' 次</span><strong>'+E(q.title)+'</strong><small>'+E(byId(id.split('.').slice(0,2).pop())?.name||q.id)+'</small></div>':'';}).join('');
+ const missed=incorrectIds.map(([id,count])=>{const q=ALL_PUZZLES.find(q=>q.id===id);return q?'<div class="mistake-row"><span class="mistake-badge">'+count+' 次</span><strong>'+E(q.title)+'</strong><small>'+E(ALL_LEVELS.find(l=>l.puzzles.some(p=>p.id===id))?.name||q.id)+'</small></div>':'';}).join('');
  ROOT.innerHTML='<div class="page"><div class="page-heading"><span class="eyebrow">LEARNING ANALYTICS</span><h1>探索档案</h1><p>记录解谜结果，不用简单的“认识了几个字母”冒充真正掌握。</p></div>'+
  '<div class="record-stats"><div><span>已破解</span><strong>'+solved+' <small>/16 关</small></strong><p>完成全部机关才能记为破解</p></div>'+
  '<div><span>累积星级</span><strong>'+totalStars()+' <small>/48 ★</small></strong><p>看首次作答与提示使用情况</p></div>'+
