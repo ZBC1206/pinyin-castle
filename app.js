@@ -168,7 +168,7 @@ function renderPuzzle(){
  const number=String(session.index+1).padStart(2,'0');
  const total=String(l.puzzles.length).padStart(2,'0');
  ROOT.innerHTML='<div class="page puzzle-page"><div class="crumb"><button data-action="goto" data-page="map">学习地图</button><span>/</span>'+
- '<button data-action="realm" data-id="'+l.realm+'">'+(l.realm==='master'?'总控密室':realmById(l.realm).name)+'</button><span>/</span><span>'+l.name+'</span></div>'+
+ '<button '+(l.realm==='master'?'data-action="goto" data-page="map"':'data-action="realm" data-id="'+l.realm+'"')+'>'+(l.realm==='master'?'总控密室':realmById(l.realm).name)+'</button><span>/</span><span>'+l.name+'</span></div>'+
  '<div class="mission-banner"><div><span class="eyebrow">MISSION / '+l.subject.toUpperCase()+'</span><h1>'+l.name+'</h1><p>'+l.story+'</p></div>'+
  '<div class="mission-id">'+String(l.ordinal).padStart(2,'0')+'<small>LEVEL</small></div></div>'+
  '<div class="puzzle-layout"><section class="puzzle-main"><div class="puzzle-progress"><div class="puzzle-meta"><span>机关 '+number+' / '+total+'</span>'+
