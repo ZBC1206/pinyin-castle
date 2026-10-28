@@ -305,7 +305,7 @@ function pickSpecs(mode){
 }
 const MODE_NAMES={challenge:'综合闯关',castle:'城堡专项训练',blend:'拼读工坊',spell:'特殊拼写训练',class:'发音归类训练',tone:'四声挑战',review:'错题复习'};
 function startSession(mode){
- const specs=shuffle(pickSpecs(mode)).filter(function(x){return !!makeQuestion(x);});
+ const specs=shuffle(pickSpecs(mode)).map(makeQuestion).filter(Boolean);
  if(!specs.length){toast('当前没有错题，先去完成一轮闯关吧');return;}
  session={mode:mode,questions:specs,index:0,score:0,wrong:0,answered:false,selected:null,started:true};
  state.sessions++;save();navigate('session',null,true);
@@ -313,7 +313,7 @@ function startSession(mode){
 function renderSession(){
  if(!session){navigate('challenge');return;}
  if(session.index>=session.questions.length){renderFinished();return;}
- const q=makeQuestion(session.questions[session.index]);if(!q){session.index++;renderSession();return;}
+ const q=session.questions[session.index];if(!q){session.index++;renderSession();return;}
  const stage=q.display==='audio'?'<button class="play-circle" data-action="qplay" aria-label="播放示例字">▶</button><div class="question-example">点按播放示例字，再选择答案</div>':
  Array.isArray(q.display)?'<div class="question-symbol split"><span>'+esc(q.display[0])+'</span><i>+</i><span>'+esc(q.display[1])+'</span><i>= ?</i></div>':
  '<div class="question-symbol">'+esc(q.display)+'</div>'+
@@ -338,7 +338,7 @@ function renderSession(){
 }
 function answer(index){
  if(!session||session.answered)return;
- const q=makeQuestion(session.questions[session.index]);
+ const q=session.questions[session.index];
  if(!q||index<0||index>=q.choices.length)return;
  session.answered=true;session.selected=index;
  const good=q.choices[index]===q.answer;
@@ -385,7 +385,7 @@ document.addEventListener('click',function(ev){
  else if(a==='speak')speak(el.dataset.text||'');
  else if(a==='start')startSession(el.dataset.mode);
  else if(a==='review')startSession('review');
- else if(a==='qplay'){if(session){const q=makeQuestion(session.questions[session.index]);if(q&&q.audio)speak(q.audio);}}
+ else if(a==='qplay'){if(session){const q=session.questions[session.index];if(q&&q.audio)speak(q.audio);}}
  else if(a==='answer')answer(Number(el.dataset.index));
  else if(a==='next')nextQuestion();
  else if(a==='retry'){if(session)startSession(session.mode);}
