@@ -233,6 +233,8 @@ function next(){
  if(run.mode==="lesson"){
   const old=state.completed[run.id],record={best:Math.max(old?.best||0,run.score),stars:Math.max(old?.stars||0,stars),plays:(old?.plays||0)+1};
   state.completed[run.id]=record;
+  const lesson=getLesson(run.id),following=dataBase(lesson.base).lessons[lesson.index+1];
+  if(following)state.lastLesson=following.id;
  }else{
   const old=state.gameBest[run.id]||0;state.gameBest[run.id]=Math.max(old,run.score);
  }
