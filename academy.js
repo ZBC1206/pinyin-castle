@@ -312,6 +312,7 @@ document.addEventListener("click",e=>{
  else if(a==="base"){if(run)run=null;pageTo("base",id);}
  else if(a==="lesson"){if(run)run=null;pageTo("lesson",id);}
  else if(a==="games"){run=null;pageTo("games");}
+ else if(a==="logic"){window.location.href="logic.html";}
  else if(a==="records"){run=null;pageTo("records");}
  else if(a==="start-lesson")startLesson(id);
  else if(a==="start-game")startGame(id);
