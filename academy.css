@@ -168,7 +168,7 @@ h1,h2,h3,p{margin:0}h1,h2,h3{line-height:1.25;letter-spacing:-.035em}
 .bowl-arena:before{content:"";position:absolute;inset:36% 10% 0;clip-path:polygon(28% 0,72% 0,100% 100%,0% 100%);background:linear-gradient(90deg,#b18b7f,#ebbd99,#b38b81)}
 .lane{position:absolute;left:49.8%;top:35%;bottom:0;width:2px;background:#fff5de70;transform:scaleX(30);opacity:.1}
 .pins{position:absolute;top:55px;left:calc(50% - 113px);width:226px;display:flex;align-items:center;justify-content:center;gap:1px;z-index:1}
-.pin{font-size:43px;line-height:1;color:#fff1eb;text-shadow:2px 4px 0 #a54c63}
+.pin{position:relative;display:block;flex:0 0 25px;width:25px;height:57px;background:linear-gradient(90deg,#b6bacb,#fff8f0 35%,#fff8f0 68%,#b2bacc);border-radius:12px 12px 9px 9px;box-shadow:2px 6px 3px #201b3290;transform-origin:bottom center}.pin:before{content:"";position:absolute;top:14px;left:0;right:0;height:7px;background:linear-gradient(#f76c6c,#b42b54)}
 .bowl-ball{position:absolute;bottom:13px;left:calc(50% - 33px);font-size:72px;line-height:1;color:#242854;text-shadow:-12px 3px 0 #3a3e78,4px 13px 7px #1d1d30;z-index:3}
 .bowl-arena.play.good .bowl-ball{animation:bowlHit .88s ease-in both}
 .bowl-arena.play.miss .bowl-ball{animation:bowlMiss .88s ease-out both}
